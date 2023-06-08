@@ -24,7 +24,7 @@ const convertToFormDate = (date) => dayjs(date).format(FORM_DATE_FORMAT);
 function createOffersTemplate(offers) {
   return offers.map((offer) => `
     <div class="event__offer-selector">
-      <input class="event__offer-checkbox  visually-hidden" id="event-offer-${offer}" type="checkbox" name="event-offer-luggage" checked>
+      <input class="event__offer-checkbox  visually-hidden" id="event-offer-${offer}" type="checkbox" name="event-offer-${offer}" checked>
       <label class="event__offer-label" for="event-offer-${offer}">
         <span class="event__offer-title">${getOfferName(offer)}</span>
         &plus;&euro;&nbsp;
@@ -43,4 +43,14 @@ const filter = {
   [FilterType.EVERYTHING]: (tripPoints) => tripPoints,
 };
 
-export {filter, isEscapeKey, createOffersTemplate, getRandomArrayElement, getRandomPrice, getRandomId, getRandomPicture, convertToEventDateTime, convertToEventDate, convertToDateTime, convertToTime, convertToUpperCase, convertToFormDate};
+function sortByDay(pointA, pointB) {
+  return dayjs(pointA.dateFrom).diff(dayjs(pointB.dateFrom));
+}
+
+function sortByTime(pointA, pointB) {
+  const timeA = dayjs(pointA.dateTo).diff(dayjs(pointA.dateFrom));
+  const timeB = dayjs(pointB.dateTo).diff(dayjs(pointB.dateFrom));
+  return timeB - timeA;
+}
+
+export {sortByDay, sortByTime, filter, isEscapeKey, createOffersTemplate, getRandomArrayElement, getRandomPrice, getRandomId, getRandomPicture, convertToEventDateTime, convertToEventDate, convertToDateTime, convertToTime, convertToUpperCase, convertToFormDate};

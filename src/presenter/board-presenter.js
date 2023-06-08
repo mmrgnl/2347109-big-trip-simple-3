@@ -1,16 +1,20 @@
-import EditingFormView from '../view/editing-form-view';
-import SortingView from '../view/sorting-view';
-import Point from '../view/point-view';
 import PointListView from '../view/point-list-view';
-import NoPointsView from '../view/no-points-view';
-//import CreationFormView from '../view/creation-form-view';
-import {render, replace} from '../framework/render.js';
-import { isEscapeKey } from '../util';
+import PointPresenter from './point-presenter';
+import Sorting from '../view/sorting-view';
+import {render, RenderPosition} from '../framework/render.js';
+import { SortType } from '../const';
+import { sortByDay, sortByTime } from '../util';
 
 export default class BoardPresenter {
-  #pointListComponent = new PointListView();
+  #pointsListComponent = new PointListView();
   #boardContainer = null;
+  #points = null;
   #pointsModel = null;
+  #noPointComponent = null;
+  #sortComponent = null;
+  #pointPresenter = new Map();
+  #currentSortType = SortType.DAY;
+  #sourcedPoints = [];
 
   constructor ({boardContainer, pointsModel}) {
     this.#boardContainer = boardContainer;
@@ -18,51 +22,83 @@ export default class BoardPresenter {
   }
 
   init() {
-    const points = [...this.#pointsModel.points];
-    if (points.length === 0) {
-      render(new NoPointsView(), this.#boardContainer);
+    this.#points = [...this.#pointsModel.points];
+    this.#sourcedPoints = [...this.#pointsModel.points];
+    this.#renderBoard();
+  }
+
+  #handleModeChange = () => {
+    this.#pointPresenter.forEach((presenter) => presenter.resetView());
+  };
+
+  #sortPoints(sortType) {
+    switch (sortType) {
+      case 'sort-day':
+        this.#points.sort(sortByDay);
+        break;
+      case 'sort-time':
+        this.#points.sort(sortByTime);
+        break;
+      default:
+        this.#points = [...this.#sourcedPoints];
     }
-    else {
-      render(new SortingView(), this.#boardContainer);
-      render(this.#pointListComponent, this.#boardContainer);
-      //render(new CreationFormView(points[0]), this.#pointListComponent.element);
-      for (let i = 0; i < points.length; i++) {
-        this.#renderPoint(points[i]);
-      }
+
+    this.#currentSortType = sortType;
+  }
+
+  #handleSortTypeChange = (sortType) => {
+    if (this.#currentSortType === sortType) {
+      return;
     }
+    this.#sortPoints(sortType);
+    this.#clearPointsList();
+    this.#renderPointsList();
+  };
+
+  #renderSort() {
+    this.#sortComponent = new Sorting({
+      onSortTypeChange: this.#handleSortTypeChange,
+      currentSortType: this.#currentSortType
+    });
+    this.#sortPoints('sort-day');
+    render(this.#sortComponent, this.#boardContainer, RenderPosition.AFTERBEGIN);
+  }
+
+  #renderBoard() {
+    if (this.#points.length === 0) {
+      render(this.#renderNoPoints, this.#boardContainer);
+      return;
+    }
+    this.#renderSort();
+    this.#renderPointsList();
+  }
+
+  #renderNoPoints() {
+    render(this.#noPointComponent, this.#boardContainer, RenderPosition.AFTERBEGIN );
+  }
+
+  #renderPointsList() {
+    render(this.#pointsListComponent, this.#boardContainer);
+    this.#renderPoints();
   }
 
   #renderPoint(point) {
-    const ecsKeyDownHandler = (evt) => {
-      if (isEscapeKey(evt)) {
-        evt.preventDefault();
-        replaceFormToPoint();
-        document.body.removeEventListener('keydown', ecsKeyDownHandler);
-      }
-    };
-
-    const pointComponent = new Point({
-      point: point,
-      onEditClick: () => {
-        replacePointToForm.call(this);
-        document.body.addEventListener('keydown', ecsKeyDownHandler);
-      }});
-
-    const editingFormComponent = new EditingFormView({
-      point: point,
-      onFormSubmit: () => {
-        replaceFormToPoint.call(this);
-        document.body.removeEventListener('keydown', ecsKeyDownHandler);
-      }
+    const pointPresenter = new PointPresenter({
+      pointListContainer: this.#pointsListComponent.element,
+      onModeChange: this.#handleModeChange
     });
 
-    function replacePointToForm() {
-      replace(editingFormComponent, pointComponent);
-    }
+    pointPresenter.init(point);
+    this.#pointPresenter.set(point.id, pointPresenter);
+  }
 
-    function replaceFormToPoint() {
-      replace(pointComponent, editingFormComponent);
-    }
-    render(pointComponent, this.#pointListComponent.element);
+  #renderPoints() {
+    this.#points.forEach((point) => this.#renderPoint(point));
+  }
+
+
+  #clearPointsList() {
+    this.#pointPresenter.forEach((presenter) => presenter.destroy());
+    this.#pointPresenter.clear();
   }
 }
