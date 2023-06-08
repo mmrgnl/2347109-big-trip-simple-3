@@ -1,10 +1,12 @@
 import PointListView from '../view/point-list-view';
 import PointPresenter from './point-presenter';
+
 import Sorting from '../view/sorting-view';
 // import CreationFormView from '../view/creation-form-view';
 import {render, RenderPosition} from '../framework/render.js';
 import { SortType } from '../const';
 import { sortByDay, sortByTime } from '../util';
+
 
 export default class BoardPresenter {
   #pointsListComponent = new PointListView();
@@ -12,10 +14,12 @@ export default class BoardPresenter {
   #points = null;
   #pointsModel = null;
   #noPointComponent = null;
+
   #sortComponent = null;
   #pointPresenter = new Map();
   #currentSortType = SortType.DAY;
   #sourcedPoints = [];
+
 
   constructor ({boardContainer, pointsModel}) {
     this.#boardContainer = boardContainer;
@@ -24,6 +28,7 @@ export default class BoardPresenter {
 
   init() {
     this.#points = [...this.#pointsModel.points];
+
     this.#sourcedPoints = [...this.#pointsModel.points];
     this.#renderBoard();
   }
@@ -65,11 +70,13 @@ export default class BoardPresenter {
     render(this.#sortComponent, this.#boardContainer, RenderPosition.AFTERBEGIN);
   }
 
+
   #renderBoard() {
     if (this.#points.length === 0) {
       render(this.#renderNoPoints, this.#boardContainer);
       return;
     }
+
     this.#renderSort();
     this.#renderPointsList();
   }
@@ -84,6 +91,7 @@ export default class BoardPresenter {
   }
 
   #renderPoint(point) {
+
     const pointPresenter = new PointPresenter({
       pointListContainer: this.#pointsListComponent.element,
       onModeChange: this.#handleModeChange
@@ -96,6 +104,7 @@ export default class BoardPresenter {
   #renderPoints() {
     this.#points.forEach((point) => this.#renderPoint(point));
   }
+
 
 
   #clearPointsList() {
