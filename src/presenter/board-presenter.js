@@ -1,6 +1,7 @@
 import PointListView from '../view/point-list-view';
 import PointPresenter from './point-presenter';
 import Sorting from '../view/sorting-view';
+// import CreationFormView from '../view/creation-form-view';
 import {render, RenderPosition} from '../framework/render.js';
 import { SortType } from '../const';
 import { sortByDay, sortByTime } from '../util';
