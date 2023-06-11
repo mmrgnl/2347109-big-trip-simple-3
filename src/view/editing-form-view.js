@@ -8,8 +8,8 @@ import 'flatpickr/dist/flatpickr.min.css';
 const BLANK_POINT = {
   basePrice: 800,
   type: 'flight',
-  dateFrom: '2019-07-18T20:20:13.375Z',
-  dateTo: '2019-07-18T21:40:13.375Z',
+  dateFrom: '2023-07-18T20:20:13.375Z',
+  dateTo: '2023-07-18T21:40:13.375Z',
   destination: 1,
   id: 0,
   offersIDs: []
@@ -273,6 +273,9 @@ export default class EditingForm extends AbstractStatefulView{
 
   #eventTypeHandler = (evt) => {
     evt.preventDefault();
+    this._setState({
+      offersIDs: []
+    });
     this.updateElement({
       type: evt.target.value,
       offers: this.#offers.find((offer) => offer.type === evt.target.value).offers.map((offer) => offer.id),
